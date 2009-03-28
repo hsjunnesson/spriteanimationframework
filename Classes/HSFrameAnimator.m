@@ -28,8 +28,9 @@
 - (id)init {
   if (self = [super init]) {
     framerate_ = 1.0/25.0;
-
-    sprites_ =  [[NSMutableArray alloc] init];
+    spriteCounter_ = 0;
+    
+    sprites_ =  [[NSMutableDictionary alloc] init];
     textures_ = [[NSMutableDictionary alloc] init];
 
     framesetsForSprites_ = [[NSMutableDictionary alloc] init];
@@ -56,19 +57,37 @@
 }
 
 - (void)registerSprite:(CALayer*)sprite forFrameset:(NSString*)frameset {
-  if (![sprites_ containsObject:sprite]) {
-    [sprites_ addObject:sprite];
+  NSNumber *index;
+  bool found = false;
+  
+  for (NSNumber *key in sprites_) {
+    if ([sprites_ objectForKey:key] == sprite)
+    {
+      index = key;
+      found = true;
+      break;
+    }
   }
-
+  
+  if (!found) {
+    index = [NSNumber numberWithLong:spriteCounter_++];
+    [sprites_ setObject:sprite forKey:index];
+  }
+  
   // Start on first frame of the frameset
-  NSNumber *index = [NSNumber numberWithInt:[sprites_ indexOfObject:sprite]];
   [currentFramesForSprites_ setObject:[NSNumber numberWithInt:0] forKey:index];
-
   [framesetsForSprites_ setObject:frameset forKey:index];
 }
 
 - (void)deregisterSprite:(CALayer*)sprite {
-  [sprites_ removeObject:sprite];
+  for (NSNumber *key in sprites_) {
+    if ([sprites_ objectForKey:key] == sprite) {
+      [sprites_ removeObjectForKey:key];
+      [currentFramesForSprites_ removeObjectForKey:key];
+      [framesetsForSprites_ removeObjectForKey:key];
+      break;
+    }
+  }
 }
 
 - (void)startTimer {
@@ -94,15 +113,14 @@
   [CATransaction begin]; 
   [CATransaction setValue: (id) kCFBooleanTrue forKey: kCATransactionDisableActions];
 
-  for (CALayer *sprite in sprites_)
+  for (NSNumber *key in sprites_)
   {
-    int index = [sprites_ indexOfObject:sprite];
-    NSNumber *indexNumber = [NSNumber numberWithInt:index];
-
-    NSString *frameset = [framesetsForSprites_ objectForKey:indexNumber];
+    CALayer *sprite = [sprites_ objectForKey:key];
+    
+    NSString *frameset = [framesetsForSprites_ objectForKey:key];
     NSArray *textures = [textures_ objectForKey:frameset];
-
-    NSNumber *currentframe = [currentFramesForSprites_ objectForKey:indexNumber];
+    
+    NSNumber *currentframe = [currentFramesForSprites_ objectForKey:key];
     UIImage *image = [textures objectAtIndex:[currentframe intValue]];
     
     [sprite setContents:(id)image.CGImage];
@@ -112,9 +130,9 @@
     
     if (newCurrentFrame > [textures count]-1)
       newCurrentFrame = 0;
-    [currentFramesForSprites_ setObject:[NSNumber numberWithInt:newCurrentFrame] forKey:indexNumber];
+    [currentFramesForSprites_ setObject:[NSNumber numberWithInt:newCurrentFrame] forKey:key];
   }
-
+  
   [CATransaction commit];
 }
 

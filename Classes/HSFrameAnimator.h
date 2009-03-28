@@ -21,13 +21,13 @@
 #import <Foundation/Foundation.h>
 #import <QuartzCore/QuartzCore.h>
 
-
 @interface HSFrameAnimator : NSObject {
  @private
+  long spriteCounter_;
   float framerate_;
   NSTimer *timer_;
 
-  NSMutableArray *sprites_;
+  NSMutableDictionary *sprites_;
   NSMutableDictionary *textures_;
 
   NSMutableDictionary *currentFramesForSprites_;
