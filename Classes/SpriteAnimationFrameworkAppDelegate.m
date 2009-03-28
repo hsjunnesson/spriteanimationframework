@@ -26,9 +26,9 @@
 
 
 - (void)applicationDidFinishLaunching:(UIApplication *)application {    
-  UIView *view = [[[UIView alloc] initWithFrame:[window bounds]] autorelease];
-  [view setBackgroundColor:[UIColor grayColor]];
-  [window addSubview:view];
+  view_ = [[[UIView alloc] initWithFrame:[window bounds]] autorelease];
+  [view_ setBackgroundColor:[UIColor grayColor]];
+  [window addSubview:view_];
   
   UIImage *img = [UIImage imageNamed:@"1.png"];
   
@@ -37,13 +37,25 @@
   ryu_.position = CGPointMake(160, 240);
   ryu_.contents = (id)img.CGImage;
   
-  [view.layer addSublayer:ryu_];
+  [view_.layer addSublayer:ryu_];
   
   UIButton *button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-  [button setFrame:CGRectMake(20, 20, 20, 20)];
-  [button setTitle:@"foo" forState:UIControlStateNormal];
+  [button setFrame:CGRectMake(10, 30, 100, 20)];
+  [button setTitle:@"Kick/Stand" forState:UIControlStateNormal];
   [button addTarget:self action:@selector(buttonPressed) forControlEvents:UIControlEventTouchUpInside];
-  [view addSubview:button];
+  [view_ addSubview:button];
+  
+  button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+  [button setFrame:CGRectMake(120, 30, 100, 20)];
+  [button setTitle:@"Stop" forState:UIControlStateNormal];
+  [button addTarget:self action:@selector(unanimate) forControlEvents:UIControlEventTouchUpInside];
+  [view_ addSubview:button];
+
+  button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+  [button setFrame:CGRectMake(10, 60, 100, 20)];
+  [button setTitle:@"Add Ryu" forState:UIControlStateNormal];
+  [button addTarget:self action:@selector(newSprite) forControlEvents:UIControlEventTouchUpInside];
+  [view_ addSubview:button];
   
   [window makeKeyAndVisible];
 
@@ -97,6 +109,22 @@
     [animator_ registerSprite:ryu_ forFrameset:@"KICK"];
     kicking_ = true;
   }
+}
+
+- (void)unanimate {
+  [animator_ deregisterSprite:ryu_];
+}
+
+- (void)newSprite {
+  CALayer *sprite = [CALayer layer];
+  sprite.bounds = CGRectMake(0, 0, 290, 178);
+  
+  float x = ((float)random()/RAND_MAX) * 320.0;
+  float y = ((float)random()/RAND_MAX) * 480.0;
+  sprite.position = CGPointMake(x, y);
+  [view_.layer addSublayer:sprite];
+  
+  [animator_ registerSprite:sprite forFrameset:@"STAND"];
 }
 
 @end

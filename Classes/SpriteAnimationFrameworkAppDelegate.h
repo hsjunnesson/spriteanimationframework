@@ -26,6 +26,7 @@
 @interface SpriteAnimationFrameworkAppDelegate : NSObject <UIApplicationDelegate> {
   UIWindow *window;
   CALayer *ryu_;
+  UIView *view_;
   HSFrameAnimator *animator_;
   bool kicking_;
 }
