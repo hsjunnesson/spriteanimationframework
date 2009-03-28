@@ -7,9 +7,15 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <QuartzCore/QuartzCore.h>
+
+#import "HSFrameAnimator.h"
 
 @interface SpriteAnimationFrameworkAppDelegate : NSObject <UIApplicationDelegate> {
-    UIWindow *window;
+  UIWindow *window;
+  CALayer *ryu_;
+  HSFrameAnimator *animator_;
+  bool kicking_;
 }
 
 @property (nonatomic, retain) IBOutlet UIWindow *window;
