@@ -44,7 +44,11 @@
 // Removes a frameset previously registered with a specific key
 - (void)removeFramesetWithKey:(NSString*)key;
 
+// Adds a sprite to animate for a certain frameset
 - (void)registerSprite:(CALayer*)sprite forFrameset:(NSString*)frameset;
+
+// Removes any references from this animator to a sprite
+- (void)deregisterSprite:(CALayer*)sprite;
 
 // Starts the animating timer
 - (void)startTimer;

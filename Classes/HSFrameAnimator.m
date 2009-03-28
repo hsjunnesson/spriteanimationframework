@@ -67,6 +67,10 @@
   [framesetsForSprites_ setObject:frameset forKey:index];
 }
 
+- (void)deregisterSprite:(CALayer*)sprite {
+  [sprites_ removeObject:sprite];
+}
+
 - (void)startTimer {
   if (timer_)
     [self stopTimer];
