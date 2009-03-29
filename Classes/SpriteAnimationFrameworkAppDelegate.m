@@ -36,7 +36,9 @@
   ryu_.bounds = CGRectMake(0, 0, 290, 178);
   ryu_.position = CGPointMake(160, 240);
   ryu_.contents = (id)img.CGImage;
-  
+  ryu_.minificationFilter = kCAFilterNearest;
+  ryu_.magnificationFilter = kCAFilterNearest;
+
   [view_.layer addSublayer:ryu_];
   
   UIButton *button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
@@ -118,9 +120,11 @@
 - (void)newSprite {
   CALayer *sprite = [CALayer layer];
   sprite.bounds = CGRectMake(0, 0, 290, 178);
+  sprite.minificationFilter = kCAFilterNearest;
+  sprite.magnificationFilter = kCAFilterNearest;
   
-  float x = ((float)random()/RAND_MAX) * 320.0;
-  float y = ((float)random()/RAND_MAX) * 480.0;
+  int x = ((float)random()/RAND_MAX) * 320;
+  int y = ((float)random()/RAND_MAX) * 480;
   sprite.position = CGPointMake(x, y);
   [view_.layer addSublayer:sprite];
   
