@@ -83,15 +83,15 @@
     UIImage *img = [UIImage imageNamed:filename];
     [frameset addObject:img];
   }
-
+  
   [animator_ addFrameset:frameset forKey:@"KICK"];
   
   [animator_ registerSprite:ryu_ forFrameset:@"STAND"];
   [animator_ setFramerate:1.0/15.0];
   
-  [animator_ startTimer];
+  [animator_ setCallback:self];
   
-  kicking_ = false;
+  [animator_ startTimer];
 }
 
 - (void)dealloc {
@@ -103,14 +103,16 @@
 
 @implementation SpriteAnimationFrameworkAppDelegate (private)
 
+- (void)hasFinishedAnimatingSprite:(CALayer*)sprite {
+  [animator_ registerSprite:sprite forFrameset:@"STAND"];
+}
+
+- (void)hasFinishedAnimatingSprite:(CALayer*)sprite forFrameset:(NSString*)frameset {
+  [animator_ registerSprite:sprite forFrameset:@"STAND"];
+}
+
 - (void)buttonPressed {
-  if (kicking_) {
-    [animator_ registerSprite:ryu_ forFrameset:@"STAND"];
-    kicking_ = false;
-  } else {
-    [animator_ registerSprite:ryu_ forFrameset:@"KICK"];
-    kicking_ = true;
-  }
+  [animator_ registerSprite:ryu_ forFrameset:@"KICK" andAnimationMode:HSAnimationModeOnce];
 }
 
 - (void)unanimate {

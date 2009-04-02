@@ -21,6 +21,10 @@
 #import <Foundation/Foundation.h>
 #import <QuartzCore/QuartzCore.h>
 
+typedef enum {
+  HSAnimationModeLoop, HSAnimationModeOnce
+} HSAnimationMode;
+
 @interface HSFrameAnimator : NSObject {
  @private
   long spriteCounter_;
@@ -29,12 +33,14 @@
 
   NSMutableDictionary *sprites_;
   NSMutableDictionary *textures_;
-
-  NSMutableDictionary *currentFramesForSprites_;
-  NSMutableDictionary *framesetsForSprites_;
+  NSMutableArray *spritesFinishedAnimating_;
+  
+  id callback_;
+  SEL callbackSelector_;
 }
 
 @property (nonatomic, assign) float framerate;
+@property (nonatomic, retain) id callback;
 
 - (id)init;
 
@@ -46,6 +52,7 @@
 
 // Adds a sprite to animate for a certain frameset
 - (void)registerSprite:(CALayer*)sprite forFrameset:(NSString*)frameset;
+- (void)registerSprite:(CALayer*)sprite forFrameset:(NSString*)frameset andAnimationMode:(HSAnimationMode)animationMode;
 
 // Removes any references from this animator to a sprite
 - (void)deregisterSprite:(CALayer*)sprite;

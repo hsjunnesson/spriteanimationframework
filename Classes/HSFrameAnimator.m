@@ -19,11 +19,12 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #import "HSFrameAnimator.h"
-
+#import "HSSprite.h"
 
 @implementation HSFrameAnimator
 
 @synthesize framerate = framerate_;
+@synthesize callback = callback_;
 
 - (id)init {
   if (self = [super init]) {
@@ -32,9 +33,10 @@
     
     sprites_ =  [[NSMutableDictionary alloc] init];
     textures_ = [[NSMutableDictionary alloc] init];
-
-    framesetsForSprites_ = [[NSMutableDictionary alloc] init];
-    currentFramesForSprites_ = [[NSMutableDictionary alloc] init];
+    
+    callbackSelector_ = @selector(hasFinishedAnimatingSprite:forFrameset:);
+    
+    spritesFinishedAnimating_ = [[NSMutableArray alloc] init];
   }
   
   return self;
@@ -43,8 +45,12 @@
 - (void)dealloc {
   [self stopTimer];
   [sprites_ release];
-  
   [textures_ release];
+  [spritesFinishedAnimating_ release];
+  
+  if (callback_)
+    [callback_ release];
+  
   [super dealloc];
 }
 
@@ -57,34 +63,45 @@
 }
 
 - (void)registerSprite:(CALayer*)sprite forFrameset:(NSString*)frameset {
+  [self registerSprite:sprite forFrameset:frameset andAnimationMode:HSAnimationModeLoop];
+}
+
+- (void)registerSprite:(CALayer*)sprite forFrameset:(NSString*)frameset andAnimationMode:(HSAnimationMode)animationMode {
   NSNumber *index;
   bool found = false;
+  HSSprite *theSprite;
   
   for (NSNumber *key in sprites_) {
-    if ([sprites_ objectForKey:key] == sprite)
+    theSprite = [sprites_ objectForKey:key];
+    if (theSprite.sprite == sprite)
     {
       index = key;
       found = true;
+      theSprite = [sprites_ objectForKey:key];
       break;
     }
   }
   
   if (!found) {
     index = [NSNumber numberWithLong:spriteCounter_++];
-    [sprites_ setObject:sprite forKey:index];
+    theSprite = [[[HSSprite alloc] init] autorelease];
+    [theSprite setSprite:sprite];
+    [sprites_ setObject:theSprite forKey:index];
   }
   
   // Start on first frame of the frameset
-  [currentFramesForSprites_ setObject:[NSNumber numberWithInt:0] forKey:index];
-  [framesetsForSprites_ setObject:frameset forKey:index];
+  [theSprite setFrameset:frameset];
+  [theSprite setFrame:0];
+  [theSprite setAnimationMode:animationMode];
 }
 
 - (void)deregisterSprite:(CALayer*)sprite {
+  HSSprite *theSprite;
+  
   for (NSNumber *key in sprites_) {
-    if ([sprites_ objectForKey:key] == sprite) {
+    theSprite = [sprites_ objectForKey:key];
+    if (theSprite.sprite == sprite) {
       [sprites_ removeObjectForKey:key];
-      [currentFramesForSprites_ removeObjectForKey:key];
-      [framesetsForSprites_ removeObjectForKey:key];
       break;
     }
   }
@@ -115,25 +132,54 @@
 
   for (NSNumber *key in sprites_)
   {
-    CALayer *sprite = [sprites_ objectForKey:key];
-    
-    NSString *frameset = [framesetsForSprites_ objectForKey:key];
+    HSSprite *theSprite = [sprites_ objectForKey:key];
+    CALayer *sprite = theSprite.sprite;
+    NSString *frameset = theSprite.frameset;
     NSArray *textures = [textures_ objectForKey:frameset];
-    
-    NSNumber *currentframe = [currentFramesForSprites_ objectForKey:key];
-    UIImage *image = [textures objectAtIndex:[currentframe intValue]];
+    int currentframe = theSprite.frame;
+    UIImage *image = [textures objectAtIndex:[theSprite frame]];
     
     [sprite setContents:(id)image.CGImage];
+
+    currentframe++;
     
-    int newCurrentFrame = [currentframe intValue];
-    newCurrentFrame++;
+    if (currentframe > [textures count]-1)
+    {
+      // Last frame on a loop, reset to first frame
+      if (theSprite.animationMode == HSAnimationModeLoop)
+      {
+        currentframe = 0;
+      }
+      
+      // Finished animating, deregister and callback
+      if (theSprite.animationMode == HSAnimationModeOnce)
+      {
+        [spritesFinishedAnimating_ addObject:theSprite];
+      }
+    }
     
-    if (newCurrentFrame > [textures count]-1)
-      newCurrentFrame = 0;
-    [currentFramesForSprites_ setObject:[NSNumber numberWithInt:newCurrentFrame] forKey:key];
+    theSprite.frame = currentframe;
   }
   
   [CATransaction commit];
+  
+  for (HSSprite *sprite in spritesFinishedAnimating_) {
+    [sprite retain];
+    [self deregisterSprite:sprite.sprite];
+
+    if (callback_)
+    {
+      @try {
+        [callback_ performSelector:callbackSelector_ withObject:sprite.sprite withObject:sprite.frameset];
+      }
+      @catch (NSException *e) {
+        NSLog(@"Caught exception %@: %@", [e name], [e reason]);
+      }
+    }
+    [sprite release];
+  }
+  
+  [spritesFinishedAnimating_ removeAllObjects];
 }
 
 @end

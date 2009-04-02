@@ -1,9 +1,9 @@
 //
-//  SpriteAnimationFrameworkAppDelegate.h
+//  HSSprite.m
 //  SpriteAnimationFramework
 //
-//  Created by Hans Sjunnesson (hans.sjunnesson@gmail.com) on 2009-03-28.
-//  Copyright Hans Sjunnesson 2009. All rights reserved.
+//  Created by Hans Sjunnesson (hans.sjunnesson@gmail.com) on 2009-03-30.
+//  Copyright 2009 Hans Sjunnesson. All rights reserved.
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU Lesser General Public License as published by
@@ -18,19 +18,26 @@
 //  You should have received a copy of the GNU Lesser General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#import <UIKit/UIKit.h>
-#import <QuartzCore/QuartzCore.h>
-
+#import "HSSprite.h"
 #import "HSFrameAnimator.h"
 
-@interface SpriteAnimationFrameworkAppDelegate : NSObject <UIApplicationDelegate> {
-  UIWindow *window;
-  CALayer *ryu_;
-  UIView *view_;
-  HSFrameAnimator *animator_;
+@implementation HSSprite
+
+@synthesize frameset = frameset_;
+@synthesize frame = frame_;
+@synthesize sprite = sprite_;
+@synthesize animationMode = animationMode_;
+
+
+- (void)dealloc {
+  if (sprite_) {
+    [sprite_ release];
+  }
+
+  if (frameset_)
+    [frameset_ release];
+  
+  [super dealloc];
 }
 
-@property (nonatomic, retain) IBOutlet UIWindow *window;
-
 @end
-
